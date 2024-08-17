@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'openweather' => [
+        'key' => env('OPENWEATHER_API_KEY'),
+    ],
+
+    "geocoding" => [
+        'key' => env('GEOCODING_API_KEY'),
+    ],
+
 ];

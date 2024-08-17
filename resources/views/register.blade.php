@@ -1,70 +1,46 @@
-@extends("layouts.app")
+@extends("layouts.app2")
 @section("content")
-    <form class="w-full max-w-sm content-center h-screen m-auto" action="{{route("register.store")}}" method="POST">
-        @csrf
-        <h1 class="text-center m-5 text-3xl font-bold ">Register New Account</h1>
-        <div class="md:flex md:items-center mb-6">
-            <div class="md:w-1/3">
-                <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" for="inline-full-name">
-                    ID
-                </label>
-            </div>
-            <div class="md:w-2/3">
-                <input name="user_id" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" id="inline-full-name" type="text" >
-            </div>
+    @if ($errors->any())
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold">Whoops!</strong>
+            <span class="block sm:inline">There were some problems with your input.</span>
+            <ul class="mt-3 list-disc list-inside text-sm text-red-600">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
+    @endif
 
-        <div class="md:flex md:items-center mb-6">
-            <div class="md:w-1/3">
-                <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" for="inline-full-name">
-                    Name
-                </label>
+    <main class="h-lvh content-center grid lg:grid-cols-[2fr,1.5fr]">
+        <h1 class="text-center text-3xl font-bold text-gray-500 m-auto">Welcome Home, Register New User</h1>
+        <form class="w-5/6 shadow-lg p-5 m-auto" action="{{route("postRegister")}}" method="POST">
+            @csrf
+            <div class="mb-6">
+                <input name="user_id" class="border-b-2 border-gray-200 w-full py-2 p text-gray-700 leading-tight focus:outline-none focus:bg-white" type="text" placeholder="User ID">
             </div>
-            <div class="md:w-2/3">
-                <input name="user_name" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" id="inline-full-name" type="text" >
-            </div>
-        </div>
 
-        <div class="md:flex md:items-center mb-6">
-            <div class="md:w-1/3">
-                <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" for="inline-full-name">
-                    Password
-                </label>
+            <div class="mb-6">
+                <input name="user_name" class="border-b-2 border-gray-200 w-full py-2 p text-gray-700 leading-tight focus:outline-none focus:bg-white" type="text" placeholder="User Name">
             </div>
-            <div class="md:w-2/3">
-                <input name="user_password" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" id="inline-full-name" type="password" >
-            </div>
-        </div>
 
-        <div class="md:flex md:items-center mb-6">
-            <div class="md:w-1/3">
-                <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" for="inline-full-name">
-                    Confirmation
-                </label>
+            <div class="mb-6">
+                <input name="user_password" class="border-b-2 border-gray-200 w-full py-2 p text-gray-700 leading-tight focus:outline-none focus:bg-white" type="password" placeholder="User Password">
             </div>
-            <div class="md:w-2/3">
-                <input name="user_password_confirmation" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" id="inline-full-name" type="password" >
-            </div>
-        </div>
 
-        <div class="md:flex md:items-center mb-6">
-            <div class="md:w-1/3">
-                <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" for="inline-password">
-                    Email
-                </label>
+            <div class="mb-6">
+                <input name="user_password_confirmation" class="border-b-2 border-gray-200 w-full py-2 p text-gray-700 leading-tight focus:outline-none focus:bg-white" type="password" placeholder="Confirm">
             </div>
-            <div class="md:w-2/3">
-                <input name="user_email" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" id="inline-password" type="email" >
-            </div>
-        </div>
 
-        <div class="md:flex md:items-center">
-            <div class="md:w-1/3"></div>
-            <div class="md:w-2/3">
-                <button class="shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
-                    Register
+            <div class="mb-6">
+                <input name="user_email" class="border-b-2 border-gray-200 w-full py-2 p text-gray-700 leading-tight focus:outline-none focus:bg-white" type="email" placeholder="User Email">
+            </div>
+
+            <div class="flex justify-end">
+                <button class="shadow bg-gray-500  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
+                        Register
                 </button>
             </div>
-        </div>
-    </form>
+        </form>
+    </main>
 @endsection
