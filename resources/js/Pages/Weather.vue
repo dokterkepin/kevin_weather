@@ -11,7 +11,8 @@ const dayForecast = ref([]);
 const weather = ref(null);
 
 
-const cityDayTime = ref('');
+const cityDay = ref('');
+const cityTime = ref('');
 const isLoading = ref(true);
 
 const searchBox = () => {
@@ -42,17 +43,13 @@ const fetchWeather = async () => {
             }
         });
         weather.value = response.data;
-        console.log(weather.value);
-        timeZone(weather.value.dt);
+        timeZone();
     }catch (errors){
         console.log('Error Fetching Weather Data', errors);
-    }finally {
-        isLoading.value = false;
     }
 };
 
 const fetchDayForecast = async () => {
-  isLoading.value = true;
   try{
       const response = await axios.get('/api/forecast', {
           params: {
@@ -60,11 +57,20 @@ const fetchDayForecast = async () => {
               lon: lon.value
           }
       });
-      for(let i = 5; i < response.data.list.length; i += 8){
-          dayForecast.value.push(response.data.list.slice(i, i + 8));
+
+      const filteredList = [];
+
+      for (let i = 0; i < 10; i++) {
+          const item = response.data.list[i];
+
+          const dayName = new Date(item.dt_txt).toLocaleDateString('en-US', { weekday: 'long' });
+
+          if (dayName !== new Date().toLocaleDateString('en-US', { weekday: 'long' })) {
+              filteredList.push(item);
+          }
       }
-      console.log(response.data.list);
-      console.log(dayForecast.value);
+      dayForecast.value = filteredList.concat(response.data.list.slice(10));
+
   }catch(errors){
       console.log('Error Fetching Weather Data', errors);
   }finally {
@@ -72,12 +78,14 @@ const fetchDayForecast = async () => {
   }
 };
 
-const timeZone = (dt) => {
-    const unixTime = dt + weather.value.timezone;
+const timeZone = () => {
+    const unixTime = weather.value.dt + weather.value.timezone;
     const dateObj = new Date(unixTime * 1000);
-    const day = new Intl.DateTimeFormat('en-US', {weekday: 'long', timeZone: 'UTC'}).format(dateObj);
-    const time = new Intl.DateTimeFormat('en-US',{hour: 'numeric', minute: 'numeric', timeZone: 'UTC'}).format(dateObj);
+    const dayStr = new Intl.DateTimeFormat('en-US', {weekday: 'long', timeZone: 'UTC'}).format(dateObj);
+    const timeStr = new Intl.DateTimeFormat('en-US',{hour: 'numeric', minute: 'numeric', timeZone: 'UTC'}).format(dateObj);
 
+    cityDay.value = dayStr;
+    cityTime.value = timeStr;
 }
 
 onMounted(() => {
@@ -94,17 +102,17 @@ onMounted(() => {
     </nav>
 
     <main id='weather-container' class='w-5/6 m-auto grid grid-cols-2 gap-4 ' v-if='!isLoading'>
-        <section id='todayData' class=' grid grid-cols-5 gap-4 col-span-2 ' >
+        <section id='todayData' class=' grid md:grid-cols-2 grid-cols-5 gap-4 col-span-2 ' >
 
-            <div id='mainData' class='border p-5 col-span-2'>
+            <div id='mainData' class='border p-5 col-span-2 md:col-span-1'>
                 <p class='font-bold text-2xl'> {{cityName}}</p>
-                <p>{{cityDayTime}}</p>
+                <p>{{cityDay}} {{cityTime}}</p>
                 <p>{{weather.weather[0].description}}</p>
             </div>
 
-            <div id='tempData' class='border grid grid-cols-2 text-center p-5'>
+            <div id='tempData' class='border grid grid-cols-2 text-center p-5 gap-2'>
                 <p class='col-span-2 m-auto text-5xl'>{{Math.round(weather.main.temp)}}°</p>
-                <p class=''>H: {{Math.round(weather.main.temp_max)}}°</p>
+                <p class='md:text-right'>H: {{Math.round(weather.main.temp_max)}}°</p>
                 <p class='text-left'>L: {{Math.round(weather.main.temp_min)}}°</p>
             </div>
 
@@ -128,35 +136,71 @@ onMounted(() => {
         </section>
 
 
-        <section id='forcastData' class='grid grid-cols-2  col-span-2 gap-4 '>
-            <div id='day1' class='border p-5'>
-                <p class='font-bold text-2xl'> {{timeZone(dayForecast[0][0].dt)}}</p>
-                <p></p>
-                <p></p>
+        <section id='forcastData' class='grid grid-cols-2 md:grid-cols-1 col-span-2 gap-4 '>
+            <div id='day1' class='border p-5 flex gap-4'>
+                <div id="day1data">
+                    <p class="">{{dayForecast[3].dt_txt.split(" ")[0]}}</p>
+                    <p class='font-bold text-2xl'>{{new Date(dayForecast[3].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
+                    <p>{{dayForecast[3].weather[0].description}}</p>
+                    <p></p>
+                </div>
+
+                <div id="day1temp" class="w-full my-auto text-lg">
+                    <p> Feels Like {{Math.round(dayForecast[3].main.feels_like)}}°</p>
+                </div>
+
             </div>
 
-            <div id='day2' class='border p-5'>
-                <p class='font-bold text-2xl'> {{cityName}}</p>
-                <p></p>
-                <p></p>
+            <div id='day2' class='border p-5 flex gap-4'>
+                <div id="day2data">
+                    <p class="">{{dayForecast[11].dt_txt.split(" ")[0]}}</p>
+                    <p class='font-bold text-2xl'> {{new Date(dayForecast[11].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
+                    <p>{{dayForecast[11].weather[0].description}}</p>
+
+                </div>
+
+                <div id="day2temp" class="day1temp w-full my-auto text-lg">
+                    <p> Feels Like {{Math.round(dayForecast[11].main.feels_like)}}°</p>
+                </div>
             </div>
 
-            <div id='day3' class='border p-5'>
-                <p class='font-bold text-2xl'> {{cityName}}</p>
-                <p></p>
-                <p></p>
+            <div id='day3' class='border p-5 flex gap-4'>
+                <div id="day3data">
+                    <p class="">{{dayForecast[19].dt_txt.split(" ")[0]}}</p>
+                    <p class='font-bold text-2xl'> {{new Date(dayForecast[19].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
+                    <p>{{dayForecast[19].weather[0].description}}</p>
+                </div>
+
+                <div id="day3temp" class="day1temp w-full my-auto text-lg">
+                    <p> Feels Like {{Math.round(dayForecast[19].main.feels_like)}}°</p>
+                </div>
+
             </div>
 
-            <div id='day4' class='border p-5'>
-                <p class='font-bold text-2xl'> {{cityName}}</p>
-                <p></p>
-                <p></p>
+            <div id='day4' class='border p-5 flex gap-4'>
+                <div id="day4data">
+                    <p class="">{{dayForecast[27].dt_txt.split(" ")[0]}}</p>
+                    <p class='font-bold text-2xl'> {{new Date(dayForecast[8].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
+                    <p>{{dayForecast[27].weather[0].description}}</p>
+
+                </div>
+
+                <div id="day4temp" class="day1temp w-full my-auto text-lg">
+                    <p> Feels Like {{Math.round(dayForecast[27].main.feels_like)}}°</p>
+                </div>
             </div>
 
-            <div id='day5' class='border p-5'>
-                <p class='font-bold text-2xl'> {{cityName}}</p>
-                <p></p>
-                <p></p>
+            <div id='day5' class='border p-5 flex gap-4'>
+                <div id="day5data">
+                    <p class="">{{dayForecast[35].dt_txt.split(" ")[0]}}</p>
+                    <p class='font-bold text-2xl'> {{new Date(dayForecast[35].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
+                    <p>{{dayForecast[35].weather[0].description}}</p>
+
+                </div>
+
+                <div id="day5temp" class="day1temp w-full my-auto text-lg">
+                    <p> Feels Like {{Math.round(dayForecast[35].main.feels_like)}}°</p>
+                </div>
             </div>
         </section>
     </main>
