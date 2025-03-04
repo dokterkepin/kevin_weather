@@ -41,8 +41,9 @@ const fetchWeather = async () => {
                 lat: lat.value,
                 lon: lon.value
             }
+
         });
-        weather.value = response.data;
+        weather.value = response.data
         timeZone();
     }catch (errors){
         console.log('Error Fetching Weather Data', errors);
@@ -56,21 +57,22 @@ const fetchDayForecast = async () => {
               lat: lat.value,
               lon: lon.value
           }
-      });
+      })
+      const forecastList = response.data.list
+      const groupedForecasts = {}
 
-      const filteredList = [];
-
-      for (let i = 0; i < 10; i++) {
-          const item = response.data.list[i];
-
-          const dayName = new Date(item.dt_txt).toLocaleDateString('en-US', { weekday: 'long' });
-
-          if (dayName !== new Date().toLocaleDateString('en-US', { weekday: 'long' })) {
-              filteredList.push(item);
+      forecastList.forEach((item) => {
+          const date = item.dt_txt.split(" ")[0]
+          if(!groupedForecasts[date]){
+              groupedForecasts[date] = []
           }
-      }
-      dayForecast.value = filteredList.concat(response.data.list.slice(10));
+          groupedForecasts[date].push(item)
+      })
+      const dailyForecasts = Object.values(groupedForecasts).slice(1, 6);
 
+      console.log("Grouped Forecast Data:", dailyForecasts);
+
+      dayForecast.value = dailyForecasts; // Store grouped data
   }catch(errors){
       console.log('Error Fetching Weather Data', errors);
   }finally {
@@ -98,22 +100,29 @@ onMounted(() => {
 
 <template>
     <nav id='search-box-container' class='w-4/6 mx-auto mt-20 mb-10'>
-        <h1 class='text-4xl text-center my-5 font-bold'>WELCOME HOME</h1>
+        <h1 class='text-4xl text-center my-5 font-bold'>KEVIN WEATHER FORECAST</h1>
     </nav>
 
     <main id='weather-container' class='w-5/6 m-auto grid grid-cols-2 gap-4 ' v-if='!isLoading'>
         <section id='todayData' class=' grid md:grid-cols-2 grid-cols-5 gap-4 col-span-2 ' >
 
-            <div id='mainData' class='border p-5 col-span-2 md:col-span-1'>
-                <p class='font-bold text-2xl'> {{cityName}}</p>
-                <p>{{cityDay}} {{cityTime}}</p>
-                <p>{{weather.weather[0].description}}</p>
+            <div id='mainData' class='border p-5 flex justify-between items-center col-span-2 md:col-span-1'>
+                <div id="data">
+                    <p class='font-bold text-2xl'> {{cityName}}</p>
+                    <p>{{cityDay}} {{cityTime}}</p>
+                    <p>{{weather.weather[0].description}}</p>
+                </div>
+
+                <div id="icon">
+                    <img :src="`http://openweathermap.org/img/wn/${weather.weather[0].icon}.png`" alt="">
+                </div>
+
             </div>
 
             <div id='tempData' class='border grid grid-cols-2 text-center p-5 gap-2'>
                 <p class='col-span-2 m-auto text-5xl'>{{Math.round(weather.main.temp)}}°</p>
                 <p class='md:text-right'>H: {{Math.round(weather.main.temp_max)}}°</p>
-                <p class='text-left'>L: {{Math.round(weather.main.temp_min)}}°</p>
+                <p class='text-center'>L: {{Math.round(weather.main.temp_min)}}°</p>
             </div>
 
             <div id='otherData' class='grid grid-cols-3 col-span-2 gap-4'>
@@ -137,69 +146,21 @@ onMounted(() => {
 
 
         <section id='forcastData' class='grid grid-cols-2 md:grid-cols-1 col-span-2 gap-4 '>
-            <div id='day1' class='border p-5 flex gap-4'>
-                <div id="day1data">
-                    <p class="">{{dayForecast[3].dt_txt.split(" ")[0]}}</p>
-                    <p class='font-bold text-2xl'>{{new Date(dayForecast[3].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
-                    <p>{{dayForecast[3].weather[0].description}}</p>
-                    <p></p>
+            <div v-for="(day, index) in dayForecast" :key="index" class="border p-5 flex gap-4 items-center justify-between" :class="{'col-span-2': index === dayForecast.length - 1}">
+                <div class="day-data">
+                    <p>{{ day[0].dt_txt.split(" ")[0] }}</p>
+                    <p class="font-bold text-2xl">
+                        {{ new Date(day[0].dt_txt).toLocaleDateString('en-US', { weekday: 'long' }) }}
+                    </p>
+                    <p>{{ day[0].weather[0].description }}</p>
                 </div>
 
-                <div id="day1temp" class="w-full my-auto text-lg">
-                    <p> Feels Like {{Math.round(dayForecast[3].main.feels_like)}}°</p>
+                <div class="day-temp my-auto text-lg items-start flex-1">
+                    <p>Feels Like {{ Math.round(day[0].main.feels_like) }}°</p>
                 </div>
 
-            </div>
-
-            <div id='day2' class='border p-5 flex gap-4'>
-                <div id="day2data">
-                    <p class="">{{dayForecast[11].dt_txt.split(" ")[0]}}</p>
-                    <p class='font-bold text-2xl'> {{new Date(dayForecast[11].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
-                    <p>{{dayForecast[11].weather[0].description}}</p>
-
-                </div>
-
-                <div id="day2temp" class="day1temp w-full my-auto text-lg">
-                    <p> Feels Like {{Math.round(dayForecast[11].main.feels_like)}}°</p>
-                </div>
-            </div>
-
-            <div id='day3' class='border p-5 flex gap-4'>
-                <div id="day3data">
-                    <p class="">{{dayForecast[19].dt_txt.split(" ")[0]}}</p>
-                    <p class='font-bold text-2xl'> {{new Date(dayForecast[19].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
-                    <p>{{dayForecast[19].weather[0].description}}</p>
-                </div>
-
-                <div id="day3temp" class="day1temp w-full my-auto text-lg">
-                    <p> Feels Like {{Math.round(dayForecast[19].main.feels_like)}}°</p>
-                </div>
-
-            </div>
-
-            <div id='day4' class='border p-5 flex gap-4'>
-                <div id="day4data">
-                    <p class="">{{dayForecast[27].dt_txt.split(" ")[0]}}</p>
-                    <p class='font-bold text-2xl'> {{new Date(dayForecast[8].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
-                    <p>{{dayForecast[27].weather[0].description}}</p>
-
-                </div>
-
-                <div id="day4temp" class="day1temp w-full my-auto text-lg">
-                    <p> Feels Like {{Math.round(dayForecast[27].main.feels_like)}}°</p>
-                </div>
-            </div>
-
-            <div id='day5' class='border p-5 flex gap-4'>
-                <div id="day5data">
-                    <p class="">{{dayForecast[35].dt_txt.split(" ")[0]}}</p>
-                    <p class='font-bold text-2xl'> {{new Date(dayForecast[35].dt_txt).toLocaleDateString('en-US', {weekday: 'long'})}}</p>
-                    <p>{{dayForecast[35].weather[0].description}}</p>
-
-                </div>
-
-                <div id="day5temp" class="day1temp w-full my-auto text-lg">
-                    <p> Feels Like {{Math.round(dayForecast[35].main.feels_like)}}°</p>
+                <div id="icon">
+                    <img :src="`http://openweathermap.org/img/wn/${day[0].weather[0].icon}.png`" alt="">
                 </div>
             </div>
         </section>
